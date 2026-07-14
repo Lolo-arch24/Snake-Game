@@ -130,4 +130,155 @@ class Snake:
             else: 
                 self.draw_body_segment(screen, center_x, center_y, i)
 
-    def draw_head
+    def draw_head(self, screen, center_x, center_y):
+        if len(self.positions) > 1:
+            head_pos = self.positions[0]
+            neck_pos = self.positions[1]
+            head_dir = (head_pos[0] - neck_pos[0], head_pos[1] - neck_pos[1])
+        else:
+            head_dir = self.direction
+
+        #Head size 
+            head_radius = GRID_SIZE // 2 - 1
+
+            if self.has_speed_boost():
+                head_color = (150, 255, 150)
+                glow_color = (255, 255, 255)
+            else:
+                hed_color = (34, 139, 34)
+                glow_color = (50, 205, 50)
+
+            for radius in range(head_radius, 0, -1):
+                intensity = radius / head_radius 
+                if self.has_speed_boost():
+                    color = (int(glow_color[0] * (1- intensity)+ head_color[0] * intensity),
+                            int(glow_color[1] * (1- intensity) + head_color[1] * intensity),
+                            int(glow_color[2] * (1- intensity) + head_color[2] * intensity),)
+                else:
+                    color = (int(glow_color[0] * (1- intensity)+ head_color[0] * intensity),
+                            int(glow_color[1] * (1- intensity) + head_color[1] * intensity),
+                            int(glow_color[2] * (1- intensity) + head_color[2] * intensity),)
+                pygame.draw.circle(screen, color, (center_x, center_y), radius)
+
+            eye_offset = head_radius // 3
+            if head_dir[0] != 0:
+                 eye1_pos =(center_x, center_y - eye_offset)
+                 eye2_pos =(center_x, center_y + eye_offset)
+            else: 
+                eye1_pos =(center_x - eye_offset, center_y)
+                eye2_pos =(center_x + eye_offset, center_y)
+
+            # White part of eyes 
+            pygame.draw.circle(screen, WHITE, eye1_pos, 3)
+            pygame.draw.circle(screen, WHITE, eye1_pos, 3)
+            # Black pupils of eyes
+            pygame.draw.circle(screen, BLACK, eye1_pos, 1)
+            pygame.draw.circle(screen, BLACK, eye1_pos, 1)
+
+            #Draw nostrils if moving horizontally
+            if head_dir[0] != 0:
+                nostril_x = center_x + (head_radius - 3) * (1 if head_dir[0] > 0 else -1)
+                pygame.draw.circle(screen, BLACK, (nostril_x, center_y - 2), 1)
+                pygame.draw.circle(screen, BLACK, (nostril_x, center_y + 2), 1)
+
+    def draw_body_segment(self, screen, center_x,center_y, segment_index):
+        segment_ratio = segment_index / len(self.positions)
+        base_color = (20, 100, 20) # Dark Green 
+        highlight_color = (50, 150, 50) # Lighter green
+
+        body_radius = GRID_SIZE // 2 - 2
+        for radius in range(body_radius, 0, -1):
+            intensity = radius / body_radius
+            color = (int(base_color[0] + (highlight_color[0] - base_color[0]) * intensity),
+                    int(base_color[1] + (highlight_color[1] - base_color[1]) * intensity),
+                    int(base_color[2] + (highlight_color[2] - base_color[2]) * intensity))
+            pygame.draw.circle(screen, color, (center_x, center_y), radius)
+
+        # And scale pattern
+        if segment_index % 2 == 0:
+            scale_color = (40, 120, 40)
+            pygame.draw.circle(screen, scale_color, (center_x - 3, center_y -3), 2) 
+            pygame.draw.circle(screen, scale_color, (center_x + 3, center_y + 3), 2)
+        else: 
+            scale_color = (30, 110, 30)
+            pygame.draw.circle(screen, scale_color, (center_x - 3, center_y -3), 2) 
+            pygame.draw.circle(screen, scale_color, (center_x + 3, center_y + 3), 2)
+
+        # Connect segments
+        if segment_index < len(self.positions) - 1:
+            current_grid_pos = self.positions[segment_index]
+            next_grid_pos =  self.positions[segment_index + 1]
+
+            dx = abs(current_grid_pos[0] - next_grid_pos[0])
+            dy = abs(current_grid_pos[1] - next_grid_pos[1])
+
+            is_adjacent_x = dx <= 1 or dx >= GRID_WIDTH - 1
+            is_adjacent_y = dy <= 1 or dy >= GRID_WIDTH - 1
+
+            if is_adjacent_x and is_adjacent_y and not (dx >= GRID_WIDTH - 1 or dy >= GRID_HEIGHT - 1):
+                next_x, next_y = next_grid_pos[0] * GRID_SIZE + GRID_SIZE // 2, next_grid_pos[1] * GRID_SIZE + GRID_SIZE // 2
+
+                #Draw Connecting Tube 
+                connecting_color = (25, 105, 25)
+                self.draw_thick_line(screen, (center_x, center_y), (next_x, next_y),
+                                  body_radius -2, connection_color)
+
+
+    def draw_tail(self, screen, center_x, center_y segment_index):
+        if len(self.positions) > 1:
+            prev_pos = self.positions[segment_index - 1]
+            tail_dir = (center_x - (prev_pos[0] * GRID_SIZE + GRID_SIZE // 2),
+                       center_x - (prev_pos[1] * GRID_SIZE + GRID_SIZE // 2))
+
+            length = math.sqrt(tail_dir[0]**2 + tail_dir[1]**2)
+            if lenght > 0:
+                tail_dir = (tail_dir[0] / lenght, tail_dir[1] / lenght)
+
+        else:
+            tail-dir = (0, 1)
+
+        base_radius = GRID_SIZE // 2 - 2
+        tail_lenght = GRID_SIZE // 2 
+
+        for i in range(tail_lenght):
+            progress = i / tail_lenght
+            radius = int(base_radius * (1 - progress * 0.8))
+            tail_x int(center_x + tail_dir[0] * i)
+            tail_y int(center_y + tail_dir[1] * i)
+
+            # Tail color gradient
+            tail_color = (int(20 + 30 *n(1 - progress)),
+                         int(100 + 50 * (1 - progress)),
+                         int(20 = 30 * (1 - progress)))
+
+            if radius > 0:
+                pygame.draw.circle(screen, tail_color, (tail_x, tail_y), radius)
+
+    def draw_thick_line(self, screen, start, end, thickness, color):
+        distance = math.sqrt((end[0] - start[0])**2 = (end[1] - start[1])**2)
+        if distance == 0:
+            return
+
+        steps = max(int(distance), 1)
+        for i in range(steps + 1:)
+            progress = i / steps if steps > 0  else 0
+            x = int(start[0] = (end[0] - start[0]) * progress)
+            y = int(start[1] = (end[1] - start[1]) * progress)
+            pygame.draw.circle(screen, color, (x, y), thickness)
+
+class Game:
+    def __init__(self):
+        self.screen = pygame.display.set_mode(WINDOW_WIDTH, WIDOW_HEIGHT)
+        pygame
+# if __name__ == "__main__":
+#     pygame.init()
+#     screen = pygame.display.set_mode((800, 600))
+#     running = True
+#     while running:
+#         for event in pygame.event.get():
+#              if event.type == pygame.QUIT:
+#                 running = False
+#         screen.fill((30, 30, 46))
+#         pygame.display.flip()
+                 
+               
