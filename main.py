@@ -36,7 +36,7 @@ class Food:
             'normal': {'color': RED, 'points': 10, 'growth': 1, 'duration': None},
             'golden': {'color': YELLOW, 'points': 50, 'growth': 2, 'duration': 5000},
             'speed': {'color': BLUE, 'points': 25, 'growth': 1, 'duration': 3000},
-            'shrink': {'color': PURPLE, 'points': 30, 'growth': -1, 'duration': None},
+            'shrink': {'color': PURPLE, 'points': 30, 'growth': - 1, 'duration': None},
         }
 
     def should_disappear(self):
@@ -224,7 +224,7 @@ class Snake:
                                   body_radius -2, connection_color)
 
 
-    def draw_tail(self, screen, center_x, center_y segment_index):
+    def draw_tail(self, screen, center_x, center_y, segment_index):
         if len(self.positions) > 1:
             prev_pos = self.positions[segment_index - 1]
             tail_dir = (center_x - (prev_pos[0] * GRID_SIZE + GRID_SIZE // 2),
@@ -235,7 +235,7 @@ class Snake:
                 tail_dir = (tail_dir[0] / lenght, tail_dir[1] / lenght)
 
         else:
-            tail-dir = (0, 1)
+            tail_dir = (0, 1)
 
         base_radius = GRID_SIZE // 2 - 2
         tail_lenght = GRID_SIZE // 2 
@@ -269,16 +269,72 @@ class Snake:
 class Game:
     def __init__(self):
         self.screen = pygame.display.set_mode(WINDOW_WIDTH, WIDOW_HEIGHT)
-        pygame
-# if __name__ == "__main__":
-#     pygame.init()
-#     screen = pygame.display.set_mode((800, 600))
-#     running = True
-#     while running:
-#         for event in pygame.event.get():
-#              if event.type == pygame.QUIT:
-#                 running = False
-#         screen.fill((30, 30, 46))
-#         pygame.display.flip()
-                 
+        pygame.display,set_caption("Snake Game")
+        self.clock = pygame.time.Clock()
+        self.snake = Snake()
+        self.foods = [Food()]
+        self.score = 0
+        self.high_score = 0
+        self.game_over = False
+        self.font = pygame.font.Font(None, 36)
+        self.small_font = pygame.font.Font(None, 24)
+        self.last_special_food = pygame.time.get_ticks()
+
+    def spawn_special_food(self):
+        current_time = pygame.time.get_thicks()
+        # Spawm food every 10-20 seconds 
+        if current_time - self.last_special_food > random.randint(10000, 20000):
+            food_types =['golden', 'speed', 'shrink']
+            special_types = random.choice(food_types)
+
+            while True
+                new_food = Food(special_types)
+                if (new_food.x, new_food.y)not in self.snake.positions:
+                    self.foods.append(new_food)
+                    break
+
+            self.last_special_food = current_time
+
+    def handle_food_collision(self):
+        head = self.snake.positions[0]
+
+        for food in self.foods[:]:
+            if head == (food.x, food.y):
+                props = food.properties[food.type]
+                self.score += props['points']
+                self.snake.grow(props['growth'])
+
+                # Food Effects 
+                if food.type == 'speed':
+                    self.snake.apply_speed_boost(8000)
+
+                #Remove eaten food
+                self.food.remove(food)
+
+                # Spawn new food
+                if not self.foods:
+                    self.foods.append(Food())
+
+                break
+
+    def update(self):
+        if not self.game_over:
+            self.snake.move()
+
+            if self.snake.check_collision():
+                self.game_over = True
+                if self.score > self.high_score:
+                    self.high_score = self.score
+
+            self.handle_food_collision()
+
+            self.foods. [food for food in self.foods if not food.should_disappear()]
+
+            self.spawn_special_food()
+
+            if not self.foods:
+                self.foods.append(Food())
+          
+
+
                
